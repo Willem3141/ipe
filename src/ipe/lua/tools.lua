@@ -195,7 +195,7 @@ function LINESTOOL:compute()
     end
     self.shape[#self.shape + 1] = seg
   end
-  self.setShape( { self.shape } )
+  self.setShape( { self.shape }, 0, prefs.rubberband_pen)
 end
 
 function LINESTOOL:mouseButton(button, modifiers, press)
@@ -406,7 +406,7 @@ end
 
 function BOXTOOL:mouseMove()
   self:compute()
-  self.setShape( { self.shape } )
+  self.setShape( { self.shape }, 0, prefs.rubberband_pen)
   self.model.ui:update(false) -- update tool
 end
 
@@ -443,7 +443,7 @@ function SPLINEGONTOOL:compute(update)
     for _,v in ipairs(self.v) do self.shape[#self.shape + 1] = v end
   end
   if update then
-    self.setShape( { self.shape } )
+    self.setShape( { self.shape }, 0, prefs.rubberband_pen)
     self.model.ui:update(false) -- update tool
   end
 end
@@ -573,7 +573,7 @@ end
 function CIRCLETOOL:mouseMove()
   self.v[self.cur] = self.model.ui:pos()
   self:compute()
-  self.setShape({ self.shape })
+  self.setShape({ self.shape }, 0, prefs.rubberband_pen)
   self.model.ui:update(false) -- update tool
 end
 
@@ -662,7 +662,7 @@ end
 function ARCTOOL:mouseMove()
   self.v[self.cur] = self.model.ui:pos()
   self:compute()
-  self.setShape({ self.shape })
+  self.setShape({ self.shape }, 0, prefs.rubberband_pen)
   self.model.ui:update(false) -- update tool
 end
 
@@ -1037,7 +1037,7 @@ end
 
 function PARAGRAPHTOOL:mouseMove()
   self:compute()
-  self.setShape( { self.shape } )
+  self.setShape( { self.shape }, 0, prefs.rubberband_pen)
   self.model.ui:update(false) -- update tool
 end
 
@@ -1162,7 +1162,7 @@ end
 
 function GRAPHTOOL:mouseMove()
   self:compute()
-  self.setShape(self.shape)
+  self.setShape(self.shape, 0, prefs.rubberband_pen)
   self.model.ui:update(false) -- update tool
 end
 
@@ -1233,7 +1233,7 @@ function CHANGEWIDTHTOOL:new(model, prim, obj)
   model.ui:shapeTool(tool)
   tool.setColor(1.0, 0, 1.0)
   local pos = tool.pos + V(tool.posfactor * tool.wid, 0)
-  tool.setShape( { boxshape(pos, pos + V(tool.wid, -20)) } )
+  tool.setShape( { boxshape(pos, pos + V(tool.wid, -20)) }, 0, prefs.rubberband_pen)
   model.ui:update(false) -- update tool
   return tool
 end
@@ -1264,7 +1264,7 @@ end
 function CHANGEWIDTHTOOL:mouseMove()
   if self.v then
     self:compute()
-    self.setShape( { self.shape } )
+    self.setShape( { self.shape }, 0, prefs.rubberband_pen)
     self.model.ui:update(false) -- update tool
   end
 end

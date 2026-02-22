@@ -202,6 +202,9 @@ prefs.laser_pointer = {
 -- tension of cardinal splines
 prefs.spline_tension = 0.5
 
+-- Width of the red rubberband line when drawing shapes
+prefs.rubberband_pen = 1.0
+
 -- Canvas customization:
 prefs.canvas_style = {
   paper_color = { r = 1.0, g = 1.0, b = 1.0 },  -- white

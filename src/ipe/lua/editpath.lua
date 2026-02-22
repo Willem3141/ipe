@@ -249,8 +249,8 @@ function EDITTOOL:setShapeMarks()
     m[#m + 1] = self.scissorPos
     m[#m + 1] = SCISSOR
   end
-  self.setShape(self.shape)
-  self.setShape(aux, 1)
+  self.setShape(self.shape, 0, prefs.rubberband_pen)
+  self.setShape(aux, 1, prefs.rubberband_pen)
   self.setMarks(m)
 end
 
