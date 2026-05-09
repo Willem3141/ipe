@@ -592,7 +592,7 @@ static int object_addToBBox(lua_State * L) {
 
 // --------------------------------------------------------------------
 
-static const char * const subpath_names[] = {"curve", "ellipse", "closedspline", nullptr};
+static const char * const subpath_names[] = {"curve", "ellipse", "closedspline", "closedspirospline", nullptr};
 
 static bool collect_cp(lua_State * L, std::vector<Vector> & cp) {
     for (int i = 0;; ++i) {
@@ -621,6 +621,13 @@ static SubPath * get_closedspline(lua_State * L, int index) {
     if (!collect_cp(L, cp))
 	luaL_error(L, "non-vector control point in element %d", index);
     return new ClosedSpline(cp);
+}
+
+static SubPath * get_closedspirospline(lua_State * L, int index) {
+    std::vector<Vector> cp;
+    if (!collect_cp(L, cp))
+	luaL_error(L, "non-vector control point in element %d", index);
+    return new ClosedSpiroSpline(cp);
 }
 
 static SubPath * get_curve(lua_State * L, int index) {
@@ -705,6 +712,9 @@ Shape ipelua::check_shape(lua_State * L, int index) {
 	case SubPath::EClosedSpline:
 	    shape.appendSubPath(get_closedspline(L, i + 1));
 	    break;
+	case SubPath::EClosedSpiroSpline:
+	    shape.appendSubPath(get_closedspirospline(L, i + 1));
+	    break;
 	case SubPath::ECurve: shape.appendSubPath(get_curve(L, i + 1)); break;
 	default: luaL_error(L, "element %d has invalid type", i + 1);
 	}
@@ -746,6 +756,17 @@ static void push_subpath(lua_State * L, const SubPath * sp) {
 	const ClosedSpline * cs = sp->asClosedSpline();
 	lua_createtable(L, cs->iCP.size(), 1);
 	lua_pushstring(L, "closedspline");
+	lua_setfield(L, -2, "type");
+	for (int j = 0; j < size(cs->iCP); ++j) {
+	    push_vector(L, cs->iCP[j]);
+	    lua_rawseti(L, -2, j + 1);
+	}
+	break;
+    }
+    case SubPath::EClosedSpiroSpline: {
+	const ClosedSpiroSpline * cs = sp->asClosedSpiroSpline();
+	lua_createtable(L, cs->iCP.size(), 1);
+	lua_pushstring(L, "closedspirospline");
 	lua_setfield(L, -2, "type");
 	for (int j = 0; j < size(cs->iCP); ++j) {
 	    push_vector(L, cs->iCP[j]);

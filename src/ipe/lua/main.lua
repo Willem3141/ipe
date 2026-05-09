@@ -143,7 +143,7 @@ end
 function transformShape(matrix, shape)
   local result = {}
   for _,path in ipairs(shape) do
-    if path.type == "ellipse" or path.type == "closedspline" then
+    if path.type == "ellipse" or path.type == "closedspline" or path.type == "closedspirospline" then
       for i = 1,#path do
 	path[i] = matrix * path[i]
       end

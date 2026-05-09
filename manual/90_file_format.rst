@@ -428,6 +428,11 @@ Each operator follows its arguments.  The operators are
   add a closed subpath consisting of a closed uniform B-spline with :math:`n` control
   points,
 
+``R`` (closed spiro spline) (:math:`n` point arguments):
+  add a closed subpath consisting of a closed clothoid spline with :math:`n` control
+  points.  As with ``L``, the computed control points are included in the path
+  description.
+
 ``h`` (closepath) (no arguments):
   close the current subpath.
   No more segments can be added to this subpath, so the next operator

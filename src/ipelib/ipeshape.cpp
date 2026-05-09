@@ -489,8 +489,9 @@ CurveSegment Curve::closingSegment() const {
   \ingroup geo
   \brief A subpath of a Path.
 
-  A subpath is either open, or closed.  There are two special kinds of
-  closed subpaths, namely ellipses and closed B-splines.
+  A subpath is either open, or closed.  There are three special kinds of
+  closed subpaths, namely ellipses, closed B-splines, and closed spiro
+  splines.
 */
 
 //! Implementation of pure virtual destructor.
@@ -505,8 +506,13 @@ bool SubPath::closed() const { return true; }
 //! Return this object as an Ellipse, or nullptr if it's not an ellipse.
 const Ellipse * SubPath::asEllipse() const { return nullptr; }
 
-//! Return this object as an ClosedSpline, or nullptr if it's not a closed spline.
+//! Return this object as an ClosedSpline, or nullptr if it's not a closed
+//! B-spline.
 const ClosedSpline * SubPath::asClosedSpline() const { return nullptr; }
+
+//! Return this object as an ClosedSpiroSpline, or nullptr if it's not a closed
+//! spiro spline.
+const ClosedSpiroSpline * SubPath::asClosedSpiroSpline() const { return nullptr; }
 
 //! Return this object as an Curve, or else nullptr.
 const Curve * SubPath::asCurve() const { return nullptr; }
@@ -629,6 +635,75 @@ void ClosedSpline::snapBnd(const Vector & mouse, const Matrix & m, Vector & pos,
 
 // --------------------------------------------------------------------
 
+/*! \class ipe::ClosedSpiroSpline
+  \ingroup geo
+  \brief A closed spiro spline curve.
+*/
+
+ClosedSpiroSpline::ClosedSpiroSpline(const std::vector<Vector> & v) {
+    assert(v.size() >= 3);
+    std::copy(v.begin(), v.end(), std::back_inserter(iCP));
+}
+
+SubPath::Type ClosedSpiroSpline::type() const { return EClosedSpiroSpline; }
+
+const ClosedSpiroSpline * ClosedSpiroSpline::asClosedSpiroSpline() const { return this; }
+
+void ClosedSpiroSpline::save(Stream & stream) const {
+    for (int i = 0; i < size(iCP) - 1; ++i) stream << iCP[i] << "\n";
+    stream << iCP.back() << " R\n";
+}
+
+void ClosedSpiroSpline::draw(Painter & painter) const {
+    std::vector<Bezier> bez;
+    beziers(bez);
+    painter.moveTo(bez.front().iV[0]);
+    for (const auto & b : bez) painter.curveTo(b);
+    painter.closePath();
+}
+
+void ClosedSpiroSpline::addToBBox(Rect & box, const Matrix & m, bool cpf) const {
+    if (cpf) {
+	for (const auto & cp : iCP) box.addPoint(m * cp);
+    } else {
+	std::vector<Bezier> bez;
+	beziers(bez);
+	for (const auto & b : bez) box.addRect((m * b).bbox());
+    }
+}
+
+double ClosedSpiroSpline::distance(const Vector & v, const Matrix & m, double bound) const {
+    std::vector<Bezier> bez;
+    beziers(bez);
+    double d = bound;
+    double d1;
+    for (const auto & b : bez) {
+	if ((d1 = (m * b).distance(v, d)) < d) d = d1;
+    }
+    return d;
+}
+
+void ClosedSpiroSpline::beziers(std::vector<Bezier> & bez) const {
+    Bezier::closedSpline(iCP.size(), &iCP.front(), bez);
+}
+
+void ClosedSpiroSpline::snapVtx(const Vector & mouse, const Matrix & m, Vector & pos,
+			        double & bound, bool ctl) const {
+    if (ctl) {
+	// snap to control points
+	for (const auto & cp : iCP) snapVertex(mouse, m * cp, pos, bound);
+    }
+}
+
+void ClosedSpiroSpline::snapBnd(const Vector & mouse, const Matrix & m, Vector & pos,
+			        double & bound) const {
+    std::vector<Bezier> bez;
+    beziers(bez);
+    for (const auto & b : bez) snapBezier(mouse, m * b, pos, bound);
+}
+
+// --------------------------------------------------------------------
+
 /*! \class ipe::Shape
   \ingroup geo
   \brief A geometric shape, consisting of several (open or closed) subpaths.
@@ -648,10 +723,11 @@ void ClosedSpline::snapBnd(const Vector & mouse, const Matrix & m, Vector & pos,
   complicated pattern.
 
   A subpath is either an Ellipse (a complete, closed ellipse), a
-  ClosedSpline (a closed uniform B-spline curve), or a Curve.  A curve
-  consists of a sequence of segments.  Segments are either straight, a
-  quadratic Bezier spline, a cubic Bezier spline, an elliptic arc, or
-  a uniform cubic B-spline.
+  ClosedSpline (a closed uniform B-spline curve), a ClosedSpiroSpline
+  (a closed clothoid spline curve) or a Curve.  A curve consists of a
+  sequence of segments.  Segments are either straight, a quadratic
+  Bezier spline, a cubic Bezier spline, an elliptic arc, or a uniform
+  cubic B-spline.
 
   Shape is implemented using reference counting and can be copied and
   passed by value efficiently.  The only mutator methods are
@@ -912,15 +988,21 @@ bool Shape::load(String data) {
 	    if (m.determinant() == 0) return false; // don't accept zero-radius arc
 	    Ellipse * e = new Ellipse(m);
 	    appendSubPath(e);
-	} else if (stream.token() == "u") {
+	} else if (stream.token() == "u" || stream.token() == "R") {
 	    if (args.size() < 6 || (args.size() % 2 != 0)) return false;
+	    String typeToken = stream.token();
 	    stream.nextToken();
 	    sp = nullptr;
 	    mid = -1;
 	    std::vector<Vector> v;
 	    while (!args.empty()) v.push_back(getVector(args));
-	    ClosedSpline * e = new ClosedSpline(v);
-	    appendSubPath(e);
+	    if (typeToken == "u") {
+		ClosedSpline * e = new ClosedSpline(v);
+		appendSubPath(e);
+	    } else if (typeToken == "R") {
+		ClosedSpiroSpline * e = new ClosedSpiroSpline(v);
+		appendSubPath(e);
+	    }
 	} else if (stream.token() == "*") {
 	    // remember position in args
 	    mid = args.size();

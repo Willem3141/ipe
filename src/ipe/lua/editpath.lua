@@ -63,7 +63,7 @@ end
 
 function moveCP(shape, spno, segno, cpno, v)
   local sp = shape[spno]
-  if sp.type == "closedspline" then
+  if sp.type == "closedspline" or sp.type == "closedspirospline" then
     sp[cpno] = v
   elseif sp.type == "ellipse" then
     if cpno == 0 then -- center
@@ -145,7 +145,7 @@ end
 
 function EDITTOOL:type()
   local cur = self.shape[self.spNum]
-  if cur.type == "closedspline" then return SPLINECP end
+  if cur.type == "closedspline" or cur.type == "closedspirospline" then return SPLINECP end
   if self.cpNum == 0 then return CENTER end
   if cur.type == "ellipse" then
     if self.cpNum == 1 then return RADIUS else return MINOR end
@@ -202,7 +202,7 @@ function EDITTOOL:setShapeMarks()
   local m = {}
   local aux = {}
   for _, sp in ipairs(self.shape) do
-    if sp.type == "closedspline" then
+    if sp.type == "closedspline" or sp.type == "closedspirospline" then
       for _,cp in ipairs(sp) do
 	m[#m + 1] = cp
 	m[#m + 1] = SPLINECP
@@ -258,7 +258,7 @@ function EDITTOOL:find(v)
   local bd = 1000000  -- maybe init with current vertex
   local spnum, segnum, cpnum
   for i,sp in ipairs(self.shape) do
-    if sp.type == "closedspline" then
+    if sp.type == "closedspline" or sp.type == "closedspirospline" then
       for j,cp in ipairs(sp) do
 	if (v-cp):sqLen() < bd then
 	  bd = (v-cp):sqLen()
@@ -334,7 +334,7 @@ function EDITTOOL:action_delete()
 	      spNum = self.spNum,
 	      original = cloneSubpath(sp),
 	      undo = revertSubpath }
-  if sp.type == "closedspline" then
+  if sp.type == "closedspline" or sp.type == "closedspirospline" then
     -- cannot have closed spline with less than 3 cp
     if #sp < 4 then return end
     table.remove(sp, self.cpNum)
@@ -376,7 +376,7 @@ function EDITTOOL:action_duplicate()
 	      spNum = self.spNum,
 	      original = cloneSubpath(sp),
 	      undo = revertSubpath }
-  if sp.type == "closedspline" then
+  if sp.type == "closedspline" or sp.type == "closedspirospline" then
     local cp = sp[self.cpNum]
     table.insert(sp, self.cpNum, cp)
     local pcp, ncp
@@ -477,7 +477,7 @@ function EDITTOOL:action_convert_spline()
 	      spNum = self.spNum,
 	      original = cloneSubpath(sp),
 	      undo = revertSubpath }
-  if sp.type == "closedspline" then
+  if sp.type == "closedspline" or sp.type == "closedspirospline" then
     local beziers = ipe.splineToBeziers(sp, true)
     beziers.type = "curve"
     beziers.closed = false
@@ -833,7 +833,7 @@ function EDITTOOL:showMenu()
   end
   if t == SPLINECP then
     local sp = self.shape[self.spNum]
-    if sp.type == "closedspline" then
+    if sp.type == "closedspline" or sp.type == "closedspirospline" then
       m:add("action_convert_spline", "Convert spline to Bezier segments")
       m:add("action_insert_knot_closed", "Cut closed spline at knot " ..
 	    self.cpNum)

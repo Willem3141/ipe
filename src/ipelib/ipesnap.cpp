@@ -126,6 +126,21 @@ void CollectSegs::visitPath(const Path * obj) {
 	    }
 	    break;
 	}
+	case SubPath::EClosedSpiroSpline: {
+	    std::vector<Bezier> bez;
+	    bool cont = false;
+	    sp->asClosedSpiroSpline()->beziers(bez);
+	    for (const Bezier & bz : bez) {
+		b = m * bz;
+		if (b.distance(iMouse, iDist) < iDist) {
+		    iBeziers.push_back(b);
+		    iBeziersCont.push_back(cont);
+		    cont = true;
+		} else
+		    cont = false;
+	    }
+	    break;
+	}
 	case SubPath::ECurve: {
 	    const Curve * ssp = sp->asCurve();
 	    for (int j = 0; j < ssp->countSegmentsClosing(); ++j) {

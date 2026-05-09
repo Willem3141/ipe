@@ -42,6 +42,7 @@ class Painter;
 
 class Ellipse;
 class ClosedSpline;
+class ClosedSpiroSpline;
 class Curve;
 
 class CurveSegment {
@@ -87,7 +88,7 @@ private:
 class SubPath {
 public:
     //! The subpath types.
-    enum Type { ECurve, EEllipse, EClosedSpline };
+    enum Type { ECurve, EEllipse, EClosedSpline, EClosedSpiroSpline };
     virtual ~SubPath() = 0;
     //! Return type of this subpath.
     virtual Type type() const = 0;
@@ -95,6 +96,7 @@ public:
 
     virtual const Ellipse * asEllipse() const;
     virtual const ClosedSpline * asClosedSpline() const;
+    virtual const ClosedSpiroSpline * asClosedSpiroSpline() const;
     virtual const Curve * asCurve() const;
 
     //! Save subpath to XML stream.
@@ -139,6 +141,25 @@ public:
     ClosedSpline(const std::vector<Vector> & v);
     virtual Type type() const;
     virtual const ClosedSpline * asClosedSpline() const;
+    void beziers(std::vector<Bezier> & bez) const;
+    virtual void save(Stream & stream) const;
+    virtual void draw(Painter & painter) const;
+    virtual void addToBBox(Rect & box, const Matrix & m, bool cp) const;
+    virtual double distance(const Vector & v, const Matrix & m, double bound) const;
+    virtual void snapVtx(const Vector & mouse, const Matrix & m, Vector & pos,
+			 double & bound, bool cp) const;
+    virtual void snapBnd(const Vector & mouse, const Matrix & m, Vector & pos,
+			 double & bound) const;
+
+public:
+    std::vector<Vector> iCP; // control points
+};
+
+class ClosedSpiroSpline : public SubPath {
+public:
+    ClosedSpiroSpline(const std::vector<Vector> & v);
+    virtual Type type() const;
+    virtual const ClosedSpiroSpline * asClosedSpiroSpline() const;
     void beziers(std::vector<Bezier> & bez) const;
     virtual void save(Stream & stream) const;
     virtual void draw(Painter & painter) const;

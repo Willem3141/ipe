@@ -428,6 +428,10 @@ function SPLINEGONTOOL:new(model)
   local tool = {}
   setmetatable(tool, SPLINEGONTOOL)
   tool.model = model
+  tool.splinegontype = "closedspline"
+  if model.attributes.splinetype == "spiro" then
+    tool.splinegontype = "closedspirospline"
+  end
   local v = model.ui:pos()
   tool.v = { v, v }
   model.ui:shapeTool(tool)
@@ -439,7 +443,7 @@ function SPLINEGONTOOL:compute(update)
   if #self.v == 2 then
     self.shape = segmentshape(self.v[1], self.v[2])
   else
-    self.shape = { type="closedspline" }
+    self.shape = { type=self.splinegontype }
     for _,v in ipairs(self.v) do self.shape[#self.shape + 1] = v end
   end
   if update then
@@ -1059,7 +1063,7 @@ local function collect_edges(p, box, view)
       local shape = obj:shape()
       local m = obj:matrix()
 
-      for shape_idx = 1,#shape do 
+      for shape_idx = 1,#shape do
         if shape[shape_idx].type == "curve" then
           local seg_idx = nil
           local cp_idx = nil
@@ -1145,7 +1149,7 @@ end
 local function moveEndpoint(obj, shape_idx, seg_idx, cp_idx, t)
   local shape = obj:shape()
   transformShape(obj:matrix(), shape)
-    
+
   moveCP(shape, shape_idx, seg_idx, cp_idx, shape[shape_idx][seg_idx][cp_idx] + t)
 
   return shape
