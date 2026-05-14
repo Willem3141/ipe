@@ -780,7 +780,7 @@ BezierContext::BezierContext(const Vector & pos, std::vector<Bezier> & bez)
 
 // ------------------------------------------------------------------------------------------
 
-void Bezier::spiroSpline(int n, const Vector * v, std::vector<Bezier> & result) {
+void Bezier::spiroSpline(int n, const Vector * v, bool closed, std::vector<Bezier> & result) {
     std::vector<spiro_cp> spiroCp;
     for (int i = 0; i < n; ++i) { spiroCp.push_back({v[i].x, v[i].y, SPIRO_G2}); }
     if (n > 2 && v[n - 2] == v[n - 1]) spiroCp.pop_back();
@@ -793,17 +793,21 @@ void Bezier::spiroSpline(int n, const Vector * v, std::vector<Bezier> & result) 
     if (
 #ifdef SPIRO_CUBIC_TO_BEZIER
 	// newer libspiro1 versions >= 20190731
-	SpiroCPsToBezier2(spiroCp.data(), spiroCp.size(), SPIRO_CUBIC_TO_BEZIER, false,
+	SpiroCPsToBezier2(spiroCp.data(), spiroCp.size(), SPIRO_CUBIC_TO_BEZIER, closed,
 			  (bezctx *)&context)
 #else
 	// older libspiro0 versions <= 20150131
 	// curve calculations affected by cp x,y points relative to [0,0]
 	// moving the spiroSpline might appear different if moved around.
-	SpiroCPsToBezier0(spiroCp.data(), spiroCp.size(), false, (bezctx *)&context)
+	SpiroCPsToBezier0(spiroCp.data(), spiroCp.size(), closed, (bezctx *)&context)
 #endif
 	!= 1) {
 	// spiro failed to resolve, use another spline instead
-	Bezier::spline(n, v, result);
+	if (closed) {
+	    Bezier::closedSpline(n, v, result);
+	} else {
+	    Bezier::spline(n, v, result);
+	}
     }
 }
 

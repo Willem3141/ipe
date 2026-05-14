@@ -257,7 +257,7 @@ public:
     static void spline(int n, const Vector * v, std::vector<Bezier> & result);
     static void cardinalSpline(int n, const Vector * v, double tension,
 			       std::vector<Bezier> & result);
-    static void spiroSpline(int n, const Vector * v, std::vector<Bezier> & result);
+    static void spiroSpline(int n, const Vector * v, bool closed, std::vector<Bezier> & result);
     static void closedSpline(int n, const Vector * v, std::vector<Bezier> & result);
 
     void intersect(const Line & l, std::vector<Vector> & result) const;

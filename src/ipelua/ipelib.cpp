@@ -592,7 +592,7 @@ static int ipe_splinetobeziers(lua_State * L) {
 	    break;
 	}
 	case CurveSegment::ESpiroSpline:
-	    Bezier::spiroSpline(v.size(), v.data(), result);
+	    Bezier::spiroSpline(v.size(), v.data(), false, result);
 	    break;
 	default: break;
 	}

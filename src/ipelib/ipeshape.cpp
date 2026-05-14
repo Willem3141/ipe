@@ -341,7 +341,7 @@ void Curve::appendSpiroSpline(const std::vector<Vector> & v) {
     assert(v[0] == iCP.back());
     // compute Bezier representation
     std::vector<Bezier> bez;
-    Bezier::spiroSpline(v.size(), v.data(), bez);
+    Bezier::spiroSpline(v.size(), v.data(), false, bez);
     // save Bezier cps
     for (const auto & b : bez) {
 	iCP.push_back(b.iV[1]);
@@ -684,7 +684,7 @@ double ClosedSpiroSpline::distance(const Vector & v, const Matrix & m, double bo
 }
 
 void ClosedSpiroSpline::beziers(std::vector<Bezier> & bez) const {
-    Bezier::closedSpline(iCP.size(), &iCP.front(), bez);
+    Bezier::spiroSpline(iCP.size(), &iCP.front(), true, bez);
 }
 
 void ClosedSpiroSpline::snapVtx(const Vector & mouse, const Matrix & m, Vector & pos,
